@@ -19,6 +19,10 @@ var my_news = [
     }
 ];
 
+
+window.ee = new EventEmitter();
+
+
 var Article = React.createClass({
     propTypes: {
         article: React.PropTypes.shape({
@@ -83,11 +87,29 @@ var News = React.createClass({
 });
 
 var App = React.createClass({
+   getInitialState: function() {
+       return {
+           news: my_news
+       }
+   },
+
+   componentDidMount: function(){
+       console.log("APP componentDidMount");
+
+       var self = this;
+       window.ee.addListener('News.add', function(item){
+           item.id = self.state.news.length || 0 + 1;
+           self.setState({news: [item].concat(self.state.news)});
+       });
+
+   },
+
    render: function() {
         return (
             <div className='app'>
                 <strong className='title'>The latest news:</strong>
-                <News data={my_news}/>
+                <News data={this.state.news}/>
+                <Add />
             </div>
         );
    }
@@ -101,7 +123,53 @@ var Comment = React.createClass({
     }
 });
 
+var Add = React.createClass({
+    getInitialState: function(){
+        return {
+            authorIsEmpty: true,
+            textIsEmpty: true
+        }
+    },
 
+    componentDidMount: function(){
+        ReactDOM.findDOMNode(this.refs.authorInput).focus();
+    },
+
+    submit: function(e) {
+        e.preventDefault();
+        var new_news = {
+            author: ReactDOM.findDOMNode(this.refs.authorInput).value,
+            text: ReactDOM.findDOMNode(this.refs.textInput).value,
+            moreText: ReactDOM.findDOMNode(this.refs.moreTextInput).value
+        };
+
+        window.ee.emit('News.add', new_news);
+    },
+
+    onFieldChange: function(fieldName, e){
+        var changedState = {};
+        changedState[fieldName] = e.target.value.trim().length ? false : true;
+        this.setState(changedState);
+        //this.setState({[''+fieldName]:e.target.value.trim().length ? false : true});
+    },
+
+    render: function() {
+        var submitIsDisabled = this.state.authorIsEmpty || this.state.textIsEmpty;
+        return (
+            <form className="add-news">
+                <input type="text" placeholder='Enter author' defaultValue=''
+                       ref='authorInput' onChange={this.onFieldChange.bind(this, 'authorIsEmpty')}/>
+
+                <textarea placeholder='Enter text' defaultValue='' ref='textInput'
+                     onChange={this.onFieldChange.bind(this, 'textIsEmpty')}/>
+
+                <textarea placeholder='Enter moreText' defaultValue='' ref='moreTextInput' />
+
+                <button onClick={this.submit} disabled={submitIsDisabled}>Submit</button>
+            </form>
+        )
+    }
+});
 
 ReactDOM.render(
     <App />,
