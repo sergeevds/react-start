@@ -1,0 +1,14 @@
+{
+  "name": "react-start",
+  "version": "1.0.0",
+  "description": "Start",
+  "main": "index.html",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Dmitry Sergeev",
+  "license": "MIT",
+  "devDependencies": {
+    "express": "^4.13.4"
+  }
+}
